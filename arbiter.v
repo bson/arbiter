@@ -49,7 +49,7 @@ module priority_arbiter #(
    parameter N = 8,             // Default 8 sources
    parameter PRIO_BITS = 3      // Default 0-7
 ) (
-   input wire [N-1:0]                req_i,  // source requests
+   input wire [N-1:0]           req_i,  // source requests
    input wire [N*PRIO_BITS-1:0] prio_i, // source priorities, packed as N sets of PRIO_BITS
 
    output wire                  req_o,  // output request
@@ -62,25 +62,24 @@ module priority_arbiter #(
    // The 4 leaf nodes have 8 inputs consisting of the 8 sources.  We
    // number the leaf level 3 and the level with a single root node 0.
    // The nodes on a level are numbered starting at 0.
-
 `define IX(L,N)  ((1 << (L)) - 1 + (N)) // Index of level L, node N
 `define ROOT_L   (0)                     // Root level
 `define ROOT_N   (0)                     // Root node index
 `define LEAF_L   ($clog2(N)-1)           // Leaf level
 `define LEAF(N)  (`IX((`LEAF_L), (N)))  // Leaf node N
 `define SLW(L)   (`LEAF_L - (L) + 1)    // Selection width at level L
-`define EVC(L,N) (`IX((L), 2 * (N)))   // Even child
-`define ODC(L,N) (`IX((L), 2 * (N) + 1)) // Odd child
+`define EVC(L,N) (`IX((L)+1, 2 * (N)))   // Even child
+`define ODC(L,N) (`IX((L)+1, 2 * (N) + 1)) // Odd child
 
    // The SEL_O bit field is a bit complicated.  We take the simple
    // approach here and overprovision, then rely on the synthesizer to
    // eliminate unused wires.
 
-   wire                   req_w[N-1:0];
-   wire [`LEAF_L:0]      sel_w[N-1:0];   // Sparse
-   wire [PRIO_BITS-1:0]  prio_w[N-1:0];
+   wire                   req_w[N-2:0];
+   wire [`LEAF_L:0]      sel_w[N-2:0];   // Sparse
+   wire [PRIO_BITS-1:0]  prio_w[N-2:0];
    
-`define PRIO_BIT_FIRST(N, OE)  (N * 2 * PRIO_BITS + (PRIO_BITS * OE) + PRIO_BITS - 1)
+`define PRIO_BIT_FIRST(N, OE) \	(N * 2 * PRIO_BITS + (PRIO_BITS * OE) + PRIO_BITS - 1)
 `define PRIO_BIT_LAST(N, OE)  (N * 2 * PRIO_BITS + (PRIO_BITS * OE))
 `define PRIO_BITS(N, OE) `PRIO_BIT_FIRST(N,OE):`PRIO_BIT_LAST(N,OE)
    
@@ -106,7 +105,7 @@ module priority_arbiter #(
                          .sel_o(sel_w[`LEAF(n)][0:0]),
                          .prio_o(prio_w[`LEAF(n)])
                     );
-                    assign sel_w[`LEAF(n)] = n & 1;  // identify this node as L/R
+                    assign sel_w[`LEAF(n)][1:1] = n & 1;  // identify this node as L/R
                 end else begin
                     // Branch or root node
                     arb2_1 #(
@@ -134,7 +133,7 @@ module priority_arbiter #(
    
    // Outputs
    assign req_o = req_w[`ROOT_N];
-   assign sel_o = sel_w[`ROOT_N];
+   assign sel_o = sel_w[`ROOT_N][`SLW(1):0];
    assign prio_o = prio_w[`ROOT_N];
    
 endmodule // priority_arbiter
