@@ -8,7 +8,8 @@ wire [2:0] prio8_3;
 
 reg [3*8-1:0] prio8_3_i;
 reg [7:0] req8_3_i;
-	
+
+reg [7:0] count = 0;
 
 task automatic verify8_3;
 	input req_e;
@@ -16,41 +17,154 @@ task automatic verify8_3;
 	input [2:0] prio_e;
 	
 	begin
-		if (req8_3 !== req_e)
-			$display("%4gns REQ is %b, expected %b", $time, req8_3, req_e);
+		if (req_e !== 1'bx && req8_3 !== req_e)
+			$display("%4gns REQ is %b, expected %b (test #%d)", $time, req8_3, req_e, count);
 		
-		if (sel8_3 !== sel_e)
-			$display("%4gns SEL is %d, expected %d", $time, sel8_3, sel_e);
+		if (sel_e !== 3'bxxx && sel8_3 !== sel_e)
+			$display("%4gns SEL is %d, expected %d (test #%d)", $time, sel8_3, sel_e, count);
 			
-		if (prio8_3 !== prio_e)
-			$display("%4gn PRIO is %d, expected %d", $time, prio8_3, prio_e);
+		if (prio_e !== 3'bxxx && prio8_3 !== prio_e)
+			$display("%4gns PRIO is %d, expected %d (test #%d)", $time, prio8_3, prio_e, count);
+		count = count + 1;
 	end
 	
 endtask
 
-reg clk = 0;
-initial
-	forever
-		#5 clk = ~clk;
-		
-reg req8_3_copy;
-reg [2:0]sel8_3_copy;
-reg [2:0]prio8_3_copy;
-
-always @ (posedge clk) begin
-	req8_3_copy <= req8_3;
-	sel8_3_copy <= sel8_3;
-	prio8_3_copy <= prio8_3;
-end
 
 initial begin
 	$display("%4g BEGIN TEST", $time);
+	
+	// 0 Basic
 
 	#2
 	prio8_3_i = { 3'd1, 3'd2, 3'd3, 3'd4, 3'd0, 3'd5, 3'd6, 3'd7 };
 	req8_3_i  = { 1'b1, 1'b1, 1'b0, 1'b1, 1'b1, 1'b0, 1'b1, 1'b1 };
 	
-	#5
+	#6
+	verify8_3(1'b1, 3'd3, 3'd0);
+	
+	
+	// 1 Above, in all positions
+
+	#2
+	prio8_3_i = { 3'd1, 3'd2, 3'd3, 3'd4, 3'd7, 3'd5, 3'd6, 3'd0 };
+	req8_3_i  = { 1'b1, 1'b1, 1'b0, 1'b1, 1'b1, 1'b0, 1'b1, 1'b1 };
+	
+	#6
+	verify8_3(1'b1, 3'd0, 3'd0);
+	
+	// 2
+	#2
+	prio8_3_i = { 3'd1, 3'd2, 3'd3, 3'd4, 3'd6, 3'd5, 3'd0, 3'd7 };
+	req8_3_i  = { 1'b1, 1'b1, 1'b0, 1'b1, 1'b1, 1'b0, 1'b1, 1'b1 };
+	
+	#6
+	verify8_3(1'b1, 3'd1, 3'd0);
+	
+	// 3
+	#2
+	prio8_3_i = { 3'd1, 3'd2, 3'd3, 3'd4, 3'd5, 3'd0, 3'd6, 3'd7 };
+	req8_3_i  = { 1'b1, 1'b1, 1'b0, 1'b1, 1'b1, 1'b1, 1'b1, 1'b1 };
+	
+	#6
+	verify8_3(1'b1, 3'd2, 3'd0);
+	
+	// 4
+	#2
+	prio8_3_i = { 3'd1, 3'd2, 3'd3, 3'd0, 3'd4, 3'd5, 3'd6, 3'd7 };
+	req8_3_i  = { 1'b1, 1'b1, 1'b0, 1'b1, 1'b1, 1'b0, 1'b1, 1'b1 };
+	
+	#6
+	verify8_3(1'b1, 3'd4, 3'd0);
+	
+	// 5
+	#2
+	prio8_3_i = { 3'd1, 3'd2, 3'd0, 3'd4, 3'd3, 3'd5, 3'd6, 3'd7 };
+	req8_3_i  = { 1'b1, 1'b1, 1'b1, 1'b1, 1'b1, 1'b0, 1'b1, 1'b1 };
+	
+	#6
+	verify8_3(1'b1, 3'd5, 3'd0);
+	
+	// 6
+	#2
+	prio8_3_i = { 3'd1, 3'd0, 3'd3, 3'd4, 3'd2, 3'd5, 3'd6, 3'd7 };
+	req8_3_i  = { 1'b1, 1'b1, 1'b0, 1'b1, 1'b1, 1'b0, 1'b1, 1'b1 };
+	
+	#6
+	verify8_3(1'b1, 3'd6, 3'd0);
+	
+	// 7
+	#2
+	prio8_3_i = { 3'd0, 3'd2, 3'd3, 3'd4, 3'd1, 3'd5, 3'd6, 3'd7 };
+	req8_3_i  = { 1'b1, 1'b1, 1'b0, 1'b1, 1'b1, 1'b0, 1'b1, 1'b1 };
+	
+	#6
+	verify8_3(1'b1, 3'd7, 3'd0);
+	
+	// 8 Reversed
+	#2
+	prio8_3_i = { 3'd7, 3'd6, 3'd5, 3'd4, 3'd0, 3'd3, 3'd2, 3'd1 };
+	req8_3_i  = { 1'b1, 1'b1, 1'b0, 1'b1, 1'b1, 1'b0, 1'b1, 1'b1 };
+	
+	#6
+	verify8_3(1'b1, 3'd3, 3'd0);
+	
+	
+	// 9 Single req
+	#2
+	prio8_3_i = { 3'd1, 3'd2, 3'd3, 3'd4, 3'd0, 3'd5, 3'd6, 3'd7 };
+	req8_3_i  = { 1'b0, 1'b0, 1'b0, 1'b0, 1'b1, 1'b0, 1'b0, 1'b0 };
+	
+	#6
+	verify8_3(1'b1, 3'd3, 3'd0);
+	
+	// 10 Non-zero prio
+	#2
+	prio8_3_i = { 3'd5, 3'd7, 3'd6, 3'd5, 3'd3, 3'd5, 3'd6, 3'd7 };
+	req8_3_i  = { 1'b1, 1'b1, 1'b0, 1'b1, 1'b1, 1'b0, 1'b1, 1'b1 };
+	
+	#6
+	verify8_3(1'b1, 3'd3, 3'd3);	
+	
+	// 11 No req in, no req out
+	#2
+	prio8_3_i = { 3'd1, 3'd2, 3'd3, 3'd4, 3'd0, 3'd5, 3'd6, 3'd7 };
+	req8_3_i  = { 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0 };
+	
+	#6
+	verify8_3(1'b0, 3'dx, 3'dx);
+	
+	// 12 Two reqs at extreme ends
+	#2
+	prio8_3_i = { 3'd1, 3'd2, 3'd3, 3'd4, 3'd0, 3'd5, 3'd6, 3'd7 };
+	req8_3_i  = { 1'b1, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b1 };
+	
+	#6
+	verify8_3(1'b1, 3'd7, 3'd1);
+	
+	// 13 Left (upper) half req
+	#2
+	prio8_3_i = { 3'd1, 3'd2, 3'd3, 3'd4, 3'd0, 3'd5, 3'd6, 3'd7 };
+	req8_3_i  = { 1'b1, 1'b1, 1'b1, 1'b1, 1'b0, 1'b0, 1'b0, 1'b0 };
+	
+	#6
+	verify8_3(1'b1, 3'd7, 3'd1);
+	
+	
+	// 14 Right (lowe) half req
+	#2
+	prio8_3_i = { 3'd1, 3'd2, 3'd3, 3'd4, 3'd0, 3'd5, 3'd6, 3'd7 };
+	req8_3_i  = { 1'b0, 1'b0, 1'b0, 1'b0, 1'b1, 1'b1, 1'b1, 1'b1 };
+	
+	#6
+	verify8_3(1'b1, 3'd3, 3'd0);
+	
+	// 15 All req
+	#2
+	prio8_3_i = { 3'd1, 3'd2, 3'd3, 3'd4, 3'd0, 3'd5, 3'd6, 3'd7 };
+	req8_3_i  = { 1'b1, 1'b1, 1'b1, 1'b1, 1'b1, 1'b1, 1'b1, 1'b1 };
+	
+	#6
 	verify8_3(1'b1, 3'd3, 3'd0);
 	
 	$display("%4g END TEST", $time);

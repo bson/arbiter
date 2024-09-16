@@ -13,9 +13,3 @@ cases.  Better would be to exhaustively test the entire space.  Or
 maybe both - if it passes the sparse test matrix, apply all of it.  If
 something fails during the exhaustive test, add it to the sparse
 matrix as it represents some edge case.
-
-This is free to play for OSH projects under GPL 3.  If you want this
-for some other project, including commercial ones, ping me at
-bson.at.rockgarden.net (you know how to turn that into a proper RFC822
-email address).
-
