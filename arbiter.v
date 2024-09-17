@@ -36,18 +36,17 @@ module arb2_1 #(
    output wire [PRIO_BITS-1:0] prio_o     // 3-bit request priority
 );
 
-   wire maxprio;
-   assign maxprio = prio_i_b > prio_i_a ? 0 : 1;
-
    assign req_o = req_i_a || req_i_b;
    assign sel_o = 
                 req_i_a && !req_i_b ? sel_i_a :
                 !req_i_a && req_i_b ? sel_i_b :
-                maxprio ? sel_i_b : sel_i_a;
+                // both or neither req asserted
+                prio_i_b > prio_i_a ? sel_i_b : sel_i_a;
     assign prio_o =
                 req_i_a && !req_i_b ? prio_i_a :
                 !req_i_a && req_i_b ? prio_i_b :
-                maxprio ? prio_i_b : prio_i_a;      // both or neither req active
+                // both or neither req asserted
+                prio_i_b > prio_i_a ? prio_i_b : prio_i_a;
 
 endmodule // arb2_1
 
