@@ -41,12 +41,12 @@ module arb2_1 #(
                 req_i_a && !req_i_b ? sel_i_a :
                 !req_i_a && req_i_b ? sel_i_b :
                 // both or neither req asserted
-                prio_i_b > prio_i_a ? sel_i_b : sel_i_a;
+                prio_i_b < prio_i_a ? sel_i_b : sel_i_a;
     assign prio_o =
                 req_i_a && !req_i_b ? prio_i_a :
                 !req_i_a && req_i_b ? prio_i_b :
                 // both or neither req asserted
-                prio_i_b > prio_i_a ? prio_i_b : prio_i_a;
+                prio_i_b < prio_i_a ? prio_i_b : prio_i_a;
 
 endmodule // arb2_1
 

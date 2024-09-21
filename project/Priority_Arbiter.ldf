@@ -2,12 +2,15 @@
 <BaliProject version="3.2" title="Priority_Arbiter" device="LCMXO2-1200HC-6TG100C" default_implementation="impl1">
     <Options/>
     <Implementation title="impl1" dir="impl1" description="impl1" synthesis="synplify" default_strategy="Strategy1">
-        <Options def_top="arbiter_tb"/>
+        <Options def_top="interface"/>
         <Source name="../arbiter.v" type="Verilog" type_short="Verilog">
             <Options/>
         </Source>
         <Source name="../arbiter_tb.v" type="Verilog" type_short="Verilog">
             <Options top_module="arbiter_tb"/>
+        </Source>
+        <Source name="../interface.v" type="Verilog" type_short="Verilog">
+            <Options top_module="interface"/>
         </Source>
         <Source name="Priority_Arbiter.lpf" type="Logic Preference" type_short="LPF">
             <Options/>
